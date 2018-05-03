@@ -2,21 +2,26 @@ import * as fs from 'fs';
 import * as cv from 'opencv4nodejs';
 import * as path from 'path';
 
+import { promiseChain } from '../main/utils';
 import { close, connect } from '../persistence/db';
 import { FaceDescriptionModel, IFaceDescriptionModel } from '../persistence/faceDescription.model';
 import { IImageModel, ImageModel } from '../persistence/image.model';
 import { jsonToCvRect, readImage } from './utils';
 
 const outDir = path.resolve(__dirname, 'output')
+const resultDir = path.resolve(outDir, 'extractedFaces')
 const labeledDir = path.resolve(outDir, 'labeled105')
-const resultDir = path.resolve(outDir, 'faces105')
 
 function isInBounds({ cols, rows }: cv.Mat, { x, y, width, height }: cv.Rect): boolean {
   return x > 0 && y > 0 && (x + width) < cols && (y + height) < rows
 }
 
-function writeImage(filename: string, img: cv.Mat) {
-  cv.imwrite(path.resolve(resultDir, filename), img)
+function writeImage(dirname: string, filename: string, img: cv.Mat) {
+  const dirpath = path.resolve(resultDir, dirname)
+  if (!fs.existsSync(dirpath)) {
+    fs.mkdirSync(dirpath)
+  }
+  cv.imwrite(path.resolve(dirpath, filename), img)
 }
 
 function extractHash(filename: string, splitChar: string): string {
@@ -52,18 +57,10 @@ async function findWithSizeForQuery(faceSize: number, query: string, exclusions:
 const outOfBounds: string[] = []
 
 const FACE_SIZE = 105
-const QUERY = 'fear the walking dead troy'
 
-// big bang theory series
-// big bang theory howard
-// big bang theory rajesh
-// big bang theory kunal nayyar
-// big bang theory kevin sussman
-
-async function run() {
-  await connect()
-  console.log('connected')
-  const all = await findWithSizeForQuery(FACE_SIZE, QUERY, getAlreadyProcessedFileHashes())
+async function extractFaceImagesForQuery(query: string) {
+  console.log('extractFaceImagesForQuery:', query)
+  const all = await findWithSizeForQuery(FACE_SIZE, query, getAlreadyProcessedFileHashes())
   console.log('files with descriptors:', all.length)
   all.forEach((desc) => {
     const { rect, filename } = desc
@@ -77,12 +74,25 @@ async function run() {
     }
 
     const [hash, ext] = filename.split('.')
+    const dirname = query.split(' ').join('_')
     const faceFilename = `${hash}_${ext}_${rect.x}_${rect.y}_${rect.width}_${rect.height}.png`
-    console.log('writing', faceFilename)
-    writeImage(faceFilename, img.getRegion(cvRect).bgrToGray().resize(FACE_SIZE, FACE_SIZE))
+    console.log('writing', dirname, faceFilename)
+    writeImage(
+      dirname,
+      faceFilename,
+      img.getRegion(cvRect).bgrToGray().resize(FACE_SIZE, FACE_SIZE)
+    )
   })
 
   console.log('skipped %s descriptors, because rect out of bounds', outOfBounds.length)
+}
+
+const queries: string[] = JSON.parse(fs.readFileSync(path.resolve(__dirname, 'output', 'queries.json')).toString())
+
+async function run() {
+  await connect()
+  console.log('connected')
+  await promiseChain(queries.map(query => async () => extractFaceImagesForQuery(query)))
   close()
 }
 

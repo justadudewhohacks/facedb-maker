@@ -4,7 +4,7 @@ import * as path from 'path';
 import { IRect } from '../entities/Rect';
 
 export function readImage(filename: string): cv.Mat {
-  return cv.imread(path.resolve(__dirname, '../renderer/output/images', filename))
+  return cv.imread(path.resolve(__dirname, '../main/output/images', filename))
 }
 
 export function jsonToCvRect({ x, y, width, height } : any): cv.Rect {

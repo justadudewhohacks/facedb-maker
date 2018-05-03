@@ -23,7 +23,7 @@ async function findFaceDescription(faceSize: number, filename: string, rect: IRe
     .find((desc: IFaceDescriptionModel) => isSameRect(desc.rect, rect))
 }
 
-const exclusions = ['trash', 'unknown']
+const exclusions = ['z_trash', 'z_unknown']
 
 const notFound = []
 
