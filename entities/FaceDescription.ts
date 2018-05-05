@@ -6,6 +6,7 @@ export class FaceDescription {
   rect: Rect
   angle: number
   descriptor: number[]
+  isDuplicate?: boolean
 
   constructor(faceDescription: IFaceDescription) {
     this.filename = faceDescription.filename
@@ -13,6 +14,7 @@ export class FaceDescription {
     this.rect = faceDescription.rect
     this.angle = faceDescription.angle
     this.descriptor = faceDescription.descriptor
+    faceDescription.isDuplicate && (this.isDuplicate = faceDescription.isDuplicate)
   }
 }
 

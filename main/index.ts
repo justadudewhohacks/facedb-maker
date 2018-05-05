@@ -10,8 +10,6 @@ const faceDetector = new FaceDetector(readImageFunction)
 const faceDescriptorExtractor = new FaceDescriptorExtractor(readImageFunction)
 
 const queries = [
-  'game of thrones stannis baratheon',
-  'stephen dillane',
   'game of thrones hodor',
   'kristian nairn',
   'game of thrones daario naharis',
@@ -37,7 +35,15 @@ const queries = [
   'game of thrones goldy',
   'hannah murray',
   'game of thrones davos seaworth',
-  'liam cunningham'
+  'liam cunningham',
+  'game of thrones brienne von tarth',
+  'gwendoline christie',
+  'game of thrones loras tyrell',
+  'finn jones',
+  'game of thrones lady_melisandre',
+  'carice van houten',
+  'the walking dead gabriel',
+  'seth gilliam'
 ]
 
 

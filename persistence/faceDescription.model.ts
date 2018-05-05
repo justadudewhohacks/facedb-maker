@@ -18,6 +18,9 @@ const FaceDescriptionSchema = new Schema({
     type: [Number],
     _id: false,
     required: true
+  },
+  isDuplicate: {
+    type: Boolean
   }
 })
 

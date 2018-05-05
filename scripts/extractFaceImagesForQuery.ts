@@ -51,7 +51,9 @@ async function findWithSizeForQuery(faceSize: number, query: string, exclusions:
     .filter((filename: string) => !exclusions.some(ex => ex === extractHash(filename, '.')))
   console.log('filenamesWithQuery:', filenamesWithQuery.length)
   console.log('filenamesNotProcessedYet:', filenamesNotProcessedYet.length)
-  return FaceDescriptionModel.find({ faceSize, filename: { $in: filenamesNotProcessedYet } }).lean().exec()
+  const faceDescriptions = await FaceDescriptionModel.find({ faceSize, filename: { $in: filenamesNotProcessedYet } }).lean().exec() as IFaceDescriptionModel[]
+  console.log('faceDescriptions:', faceDescriptions.length)
+  return faceDescriptions.filter(fd => !fd.isDuplicate)
 }
 
 const outOfBounds: string[] = []
@@ -74,7 +76,9 @@ async function extractFaceImagesForQuery(query: string) {
     }
 
     const [hash, ext] = filename.split('.')
-    const dirname = query.split(' ').join('_')
+    let dirname = query.split(' ').join('_')
+    // remove accent from letter i
+    dirname = dirname.startsWith('danay_garc') ? 'danay_garcia' : dirname
     const faceFilename = `${hash}_${ext}_${rect.x}_${rect.y}_${rect.width}_${rect.height}.png`
     console.log('writing', dirname, faceFilename)
     writeImage(
